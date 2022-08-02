@@ -1,0 +1,18 @@
+{
+  "name": "nodeprocon",
+  "version": "1.0.0",
+  "description": "README 文件通常是项目的第一个入口点。你应该通过 README 明确地告诉大家，为什么他们应该使用你的项目，以及安装和使用的方法。",
+  "main": "index.js",
+  "scripts": {
+    "serve": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://code.alipay.com/jiangchu.wzy/NodeProCon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.18.1"
+  }
+}
