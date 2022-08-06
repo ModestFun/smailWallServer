@@ -13,7 +13,7 @@ const options = {
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(options, app);
 
-httpServer.listen(8080, () => {
+httpServer.listen(80, () => {
   console.log('HTTP running 80');
 })
 
