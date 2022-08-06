@@ -2,7 +2,8 @@ const mongoose = require('../db/mongodb');
 
 const ImageSchema = new mongoose.Schema({
   state: String,
-  path: String
+  fileName: String,
+  uploadTime: String,
 })
 
 
