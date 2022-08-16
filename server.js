@@ -217,14 +217,18 @@ async function checkAuth (token) {
 const checkImgTimeOut = () => {
   setInterval(async () => {
     const list = await Image.find({ state: fail, uploadTime: { $lt: Date.now() } });
-    list.forEach((item) => {
-      fs.rmSync(path.resolve(`./public/images/${item.fileName}`));
-    });
-    Image.deleteMany({ state: fail, uploadTime: { $lt: Date.now() } }).then((res) => {
-      console.log(res);
-    }).catch(err => {
-      console.log(err);
-    })
+    if (list.length) {
+      list.forEach((item) => {
+        fs.rmSync(path.resolve(`./public/images/${item.fileName}`));
+      });
+      Image.deleteMany({ state: fail, uploadTime: { $lt: Date.now() } }).then((res) => {
+        console.log(res);
+      }).catch(err => {
+        console.log(err);
+      })
+    } else {
+      console.log('今天暂无要删除的照片');
+    }
   }, 3600000 * 24);
 }
 
