@@ -16,8 +16,6 @@ const fail = 'fail';
 
 let host = 'http://172.20.10.4:8080/'
 
-
-
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
