@@ -11,7 +11,7 @@ const pending = 'pending';
 const success = 'success';
 const fail = 'fail';
 
-const host = 'http:127.0.0.1:8080/'
+const host = 'http://192.168.18.201:8080/'
 
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
@@ -50,7 +50,33 @@ app.get('/getUncheckedImgList', async (req, res) => {
   res.send({ imgList })
 })
 
-// 审核一张照片
+// 获取待下载图片列表
+app.get('/getUnDownloadImgList', async (req, res) => {
+  const images = await Image.find({ download: false, state: success });
+  const imgList = images.map(item => {
+    return {
+      id: item.id
+    }
+  });
+  res.send({ imgList })
+})
+
+// 下载一张图片
+app.get('/downloadImg/:id', async (req, res) => {
+  const { id } = req.params;
+  if (id) {
+    const img = await Image.findById({ _id: id });
+    const file = path.resolve(`./public/images/${img.fileName}`);
+    await Image.findByIdAndUpdate({ _id: id }, {
+      $set: { download: true }
+    }, {});
+    res.download(file);
+  } else {
+    res.send('Not Found Image!')
+  }
+})
+
+// 审批一张照片
 app.get('/checkImg', async (req, res) => {
   const { id, state } = req.query;
   if (![success, fail].includes(state)) {
@@ -66,7 +92,6 @@ app.get('/checkImg', async (req, res) => {
     console.log(err);
     res.send({ success: false })
   }
-
 })
 
 // 获取图片列表
