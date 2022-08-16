@@ -2,22 +2,36 @@ const express = require('express');
 const multer = require('multer');
 const bodyParser = require('body-parser')
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const md5 = require("md5");
 const fs = require('fs');
 const { Image } = require('./src/model/Image');
 const { User } = require('./src/model/User');
 const app = express();
 
+const salt = 'E=j_Z`$*NxgAOla';
 const pending = 'pending';
 const success = 'success';
 const fail = 'fail';
 
-const host = 'http://192.168.18.201:8080/'
+let host = 'http://172.20.10.4:8080/'
 
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.listen(8080, () => console.log('server running at 8080'));
+
+// 获取环境变量中的host
+process.argv.forEach((val) => {
+  if (val.indexOf('CONFIG_HOST=') !== -1) {
+    const configHost = val.split('CONFIG_HOST=').reverse()[0];
+
+    if (configHost && configHost.length > 0) {
+      host = configHost;
+    }
+  }
+})
 
 // 上传照片
 app.post('/uploadImg', async (req, res) => {
@@ -51,14 +65,19 @@ app.get('/getUncheckedImgList', async (req, res) => {
 })
 
 // 获取待下载图片列表
-app.get('/getUnDownloadImgList', async (req, res) => {
-  const images = await Image.find({ download: false, state: success });
-  const imgList = images.map(item => {
-    return {
-      id: item.id
-    }
-  });
-  res.send({ imgList })
+app.post('/getUnDownloadImgList', async (req, res) => {
+  const { token } = req.body;
+  if (checkAuth(token)) {
+    const images = await Image.find({ download: false, state: success });
+    const imgList = images.map(item => {
+      return {
+        id: item.id
+      }
+    });
+    res.send({ imgList })
+    return;
+  }
+  res.send({ success: false, msg: 'token invalid' })
 })
 
 // 下载一张图片
@@ -182,6 +201,27 @@ app.get('/register', async (req, res) => {
     res.send({ success: false })
   }
 })
+
+// 鉴权方法
+async function checkAuth (token) {
+  try {
+    const { key } = await jwt.verify(token, salt);
+    const authKey = md5(new Date().getHours());
+    if (key === authKey) {
+      return true
+    } else {
+      return false
+    }
+  } catch (err) {
+    return false
+  }
+}
+
+function checkImgTimeOut () {
+  setInterval(async () => {
+    const list = await Image.find({})
+  }, 2592000000)
+}
 
 app.get('/hello', async (req, res) => {
   console.log('here');
