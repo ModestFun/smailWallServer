@@ -207,21 +207,28 @@ async function checkAuth (token) {
   try {
     const { key } = await jwt.verify(token, salt);
     const authKey = md5(new Date().getHours());
-    if (key === authKey) {
-      return true
-    } else {
-      return false
-    }
+    return key === authKey;
   } catch (err) {
     return false
   }
 }
 
-function checkImgTimeOut () {
+// 审核未通过的照片，在30天后自动删除
+const checkImgTimeOut = () => {
   setInterval(async () => {
-    const list = await Image.find({})
-  }, 2592000000)
+    const list = await Image.find({ state: fail, uploadTime: { $lt: Date.now() } });
+    list.forEach((item) => {
+      fs.rmSync(path.resolve(`./public/images/${item.fileName}`));
+    });
+    Image.deleteMany({ state: fail, uploadTime: { $lt: Date.now() } }).then((res) => {
+      console.log(res);
+    }).catch(err => {
+      console.log(err);
+    })
+  }, 3600000 * 24);
 }
+
+checkImgTimeOut();
 
 app.get('/hello', async (req, res) => {
   console.log('here');
