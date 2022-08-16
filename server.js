@@ -16,6 +16,8 @@ const fail = 'fail';
 
 let host = 'http://172.20.10.4:8080/'
 
+
+
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -233,6 +235,25 @@ const checkImgTimeOut = () => {
 }
 
 checkImgTimeOut();
+
+// 初始化第一批账号密码
+const initFirstAdmin = async () => {
+  const userList = await User.find();
+  const txt = fs.readFileSync('./state.txt', 'utf-8');
+  try {
+    if (userList.length !== 0 && txt === 'false') {
+      await User.create({
+        account: 'admin', password: '123456'
+      });
+      await fs.writeFileSync('./state.txt', 'true');
+    }
+  } catch (err) {
+    console.log(err);
+    console.log('初始化账号失败');
+  }
+}
+
+initFirstAdmin();
 
 app.get('/hello', async (req, res) => {
   console.log('here');
