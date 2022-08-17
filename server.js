@@ -14,24 +14,13 @@ const pending = 'pending';
 const success = 'success';
 const fail = 'fail';
 
-let host = 'http://172.20.10.4:8080/'
+let host = process.env.CONFIG_HOST
 
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.listen(8080, () => console.log('server running at 8080'));
-
-// 获取环境变量中的host
-process.argv.forEach((val) => {
-  if (val.indexOf('CONFIG_HOST=') !== -1) {
-    const configHost = val.split('CONFIG_HOST=').reverse()[0];
-
-    if (configHost && configHost.length > 0) {
-      host = configHost;
-    }
-  }
-})
 
 // 上传照片
 app.post('/uploadImg', async (req, res) => {

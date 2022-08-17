@@ -1,0 +1,21 @@
+# yaml 配置
+version: '1.0.0-dev'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    links:
+      - mongo
+    environment:
+      - MONGO_URL=mongodb://root:example@mongo:27017
+      - CONFIG_HOST=http://127.0.0.1:8080/
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
