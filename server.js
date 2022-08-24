@@ -14,8 +14,6 @@ const pending = 'pending';
 const success = 'success';
 const fail = 'fail';
 
-let host = process.env.CONFIG_HOST
-
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -46,7 +44,7 @@ app.get('/getUncheckedImgList', async (req, res) => {
   const images = await Image.find({ state: pending }).skip((pageNum - 1) * parseInt(pageSize)).limit(pageSize);
   const imgList = images.map(item => {
     return {
-      url: `${host}img/${item.fileName}`,
+      url: `/img/${item.fileName}`,
       id: item._id,
     }
   });
@@ -63,7 +61,7 @@ app.post('/getUnDownloadImgList', async (req, res) => {
         id: item.id
       }
     });
-    res.send({ imgList })
+    res.send({ success: true, imgList })
     return;
   }
   res.send({ success: false, msg: 'token invalid' })
@@ -106,7 +104,7 @@ app.get('/checkImg', async (req, res) => {
 app.get('/getImgList', async (req, res) => {
   const { pageNum = 1, pageSize = 10 } = req.query;
   const images = await Image.find().skip((pageNum - 1) * parseInt(pageSize)).limit(pageSize);
-  const imgList = images.filter(item => item.state === pending).map(item => `${host}img/${item.fileName}`);
+  const imgList = images.filter(item => item.state === pending).map(item => `/img/${item.fileName}`);
   res.send({ imgList })
 })
 
@@ -228,11 +226,12 @@ const initFirstAdmin = async () => {
   const userList = await User.find();
   const txt = fs.readFileSync('./state.txt', 'utf-8');
   try {
-    if (userList.length !== 0 && txt === 'false') {
+    if (userList.length === 0 && txt.trim() === 'false') {
       await User.create({
         account: 'admin', password: '123456'
       });
       await fs.writeFileSync('./state.txt', 'true');
+      console.log('账号初始化成功');
     }
   } catch (err) {
     console.log(err);
@@ -241,12 +240,3 @@ const initFirstAdmin = async () => {
 }
 
 initFirstAdmin();
-
-app.get('/hello', async (req, res) => {
-  console.log('here');
-
-  const images = await Image.find();
-  console.log(images);
-
-  res.send({ hei: 'hello world' });
-})
