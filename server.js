@@ -7,6 +7,8 @@ const md5 = require("md5");
 const fs = require('fs');
 const { Image } = require('./src/model/Image');
 const { User } = require('./src/model/User');
+const http = require('http');
+const https = require('https');
 const app = express();
 
 const salt = 'E=j_Z`$*NxgAOla';
@@ -14,11 +16,36 @@ const pending = 'pending';
 const success = 'success';
 const fail = 'fail';
 
+
+const options = {
+  key: fs.readFileSync(path.resolve('./cert/miniapp.wstour.net.key')),
+  cert: fs.readFileSync(path.resolve('./cert/miniapp.wstour.net_bundle.pem'))
+}
+
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(options, app);
+
+httpServer.listen(80, () => {
+  console.log('HTTP running 80');
+})
+
+// httpsServer.listen(443, () => {
+//   console.log('HTTPS running 443')
+// })
+
+httpsServer.listen(8080, () => {
+  console.log('HTTPS running 8080')
+})
+
+app.get('/', (req, res) => {
+  res.send('NB');
+})
+
+// app.listen(8080, () => console.log('server running at 8080'));
+
 app.use(multer({ dest: path.resolve('./public/images') }).any());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-app.listen(8080, () => console.log('server running at 8080'));
 
 // 上传照片
 app.post('/uploadImg', async (req, res) => {

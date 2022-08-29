@@ -6,8 +6,8 @@ const express = require('express');
 const app = express();
 
 const options = {
-  key: fs.readFileSync(path.resolve('./cert/modestfun.top.key')),
-  cert: fs.readFileSync(path.resolve('./cert/modestfun.top_bundle.pem'))
+  key: fs.readFileSync(path.resolve('./cert/miniapp.wstour.net.key')),
+  cert: fs.readFileSync(path.resolve('./cert/miniapp.wstour.net_bundle.pem'))
 }
 
 const httpServer = http.createServer(app);
