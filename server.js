@@ -7,15 +7,16 @@ const md5 = require("md5");
 const fs = require('fs');
 const { Image } = require('./src/model/Image');
 const { User } = require('./src/model/User');
+const { AdminPhone } = require('./src/model/AdminPhone');
 const http = require('http');
 const https = require('https');
 const app = express();
+const axios = require('axios');
 
 const salt = 'E=j_Z`$*NxgAOla';
 const pending = 'pending';
 const success = 'success';
 const fail = 'fail';
-
 
 const options = {
   key: fs.readFileSync(path.resolve('./cert/miniapp.wstour.net.key')),
@@ -25,7 +26,7 @@ const options = {
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(options, app);
 
-httpServer.listen(80, () => {
+httpServer.listen(8090, () => {
   console.log('HTTP running 80');
 })
 
@@ -264,6 +265,81 @@ const initFirstAdmin = async () => {
     console.log(err);
     console.log('初始化账号失败');
   }
+}
+
+// 获取手机号
+app.get('/getPhoneNumber', async (req, res) => {
+  const { code } = req.query;
+  const phone = await getAccessToken(code);
+  res.send({
+    success: true,
+    phone
+  })
+})
+
+// 判断是否为管理员手机号
+app.get('/setAdminPhone', async (req, res) => {
+  const { phone } = req.query;
+
+  try {
+    await AdminPhone.create({
+      phone
+    });
+    res.send({
+      success: true,
+    })
+  } catch (err) {
+    console.log(err);
+    res.send({
+      success: false,
+    })
+  }
+})
+
+// 获取全部管理员手机号
+app.get('/getAdminPhoneList', async (req, res) => {
+
+  try {
+    const list = await AdminPhone.find();
+    res.send({
+      success: true,
+      list
+    })
+  } catch (err) {
+    console.log(err);
+    res.send({
+      success: false,
+    })
+  }
+})
+
+// 判断是否为管理员手机号
+app.get('/checkIsAdmin', async (req, res) => {
+  const { phone } = req.query;
+
+  const list = await AdminPhone.find();
+  console.log(list)
+  res.send({
+    success: true,
+    isAdmin: list.map(item => item.phone).includes(phone)
+  })
+})
+
+// 微信小程序获取access_token
+const getAccessToken = async (code) => {
+  const config = {
+    grant_type: 'client_credential',
+    appid: "wx8dcb2cd35a9da20a",
+    secret: "b058768141e6bd1534c174587b818f12"
+  }
+  const res = await axios.get(`https://api.weixin.qq.com/cgi-bin/token?grant_type=${config.grant_type}&appid=${config.appid}&secret=${config.secret}`);
+  const { access_token } = res.data;
+  console.log(access_token);
+  const res2 = await axios.post(`https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${access_token}`, JSON.stringify({
+    code,
+  }));
+
+  return res2.data.phone_info.purePhoneNumber;
 }
 
 initFirstAdmin();
